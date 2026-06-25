@@ -1,394 +1,407 @@
 PRAGMA foreign_keys = ON;
 
-----------------------------------------------------
--- UTILISATEURS
-----------------------------------------------------
+-------------------------------------------------
+-- USERS
+-------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS users(
 
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    nom TEXT NOT NULL,
+nom TEXT NOT NULL,
 
-    prenom TEXT NOT NULL,
+prenom TEXT NOT NULL,
 
-    matricule TEXT UNIQUE NOT NULL,
+matricule TEXT UNIQUE NOT NULL,
 
-    email TEXT UNIQUE,
+email TEXT UNIQUE,
 
-    filiere TEXT NOT NULL,
+filiere TEXT NOT NULL,
 
-    niveau TEXT NOT NULL,
+niveau TEXT NOT NULL,
 
-    role TEXT NOT NULL CHECK (
-        role IN (
-            'administrateur',
-            'enseignant',
-            'etudiant',
-            'contributeur'
-        )
-    ),
+role TEXT NOT NULL CHECK(
 
-    password_hash TEXT NOT NULL,
+role IN(
 
-    photo TEXT,
+'administrateur',
+'enseignant',
+'etudiant',
+'contributeur'
 
-    est_actif INTEGER DEFAULT 1,
+)
 
-    tentatives_connexion INTEGER DEFAULT 0,
+),
 
-    date_inscription DATETIME DEFAULT CURRENT_TIMESTAMP,
+password_hash TEXT NOT NULL,
 
-    derniere_connexion DATETIME
+photo TEXT,
+
+est_actif INTEGER DEFAULT 1,
+
+tentatives_connexion INTEGER DEFAULT 0,
+
+date_inscription DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+derniere_connexion DATETIME
 
 );
 
 
-----------------------------------------------------
+-------------------------------------------------
 -- DOCUMENTS
-----------------------------------------------------
+-------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS subjects (
+CREATE TABLE IF NOT EXISTS subjects(
 
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    titre TEXT NOT NULL,
+titre TEXT NOT NULL,
 
-    description TEXT,
+description TEXT,
 
-    cycle TEXT,
+cycle TEXT,
 
-    filiere TEXT,
+filiere TEXT,
 
-    niveau TEXT,
+niveau TEXT,
 
-    annee INTEGER,
+annee INTEGER,
 
-    type_document TEXT,
+type_document TEXT,
 
-    enseignant TEXT,
+enseignant_id INTEGER,
 
-    auteur_id INTEGER,
+auteur_id INTEGER,
 
-    pdf_path TEXT,
+pdf_path TEXT,
 
-    version INTEGER DEFAULT 1,
+version INTEGER DEFAULT 1,
 
-    statut TEXT DEFAULT 'brouillon'
+statut TEXT DEFAULT 'brouillon'
 
-    CHECK(
+CHECK(
 
-        statut IN (
+statut IN(
 
-            'brouillon',
+'brouillon',
+'en_attente',
+'publie',
+'rejete',
+'archive',
+'corbeille'
 
-            'en_attente',
+)
 
-            'publie',
+),
 
-            'rejete',
+est_payant INTEGER DEFAULT 0,
 
-            'archive',
+prix INTEGER DEFAULT 300,
 
-            'corbeille'
+mode_paiement TEXT,
 
-        )
+date_creation DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    ),
+date_validation DATETIME,
 
-    est_payant INTEGER DEFAULT 0,
+FOREIGN KEY(enseignant_id)
 
-    prix INTEGER DEFAULT 0,
+REFERENCES users(id),
 
-    mode_paiement TEXT,
+FOREIGN KEY(auteur_id)
 
-    date_creation DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-    date_validation DATETIME,
-
-    FOREIGN KEY(auteur_id)
-
-    REFERENCES users(id)
-
-);
-
-
-----------------------------------------------------
--- FAVORIS
-----------------------------------------------------
-
-CREATE TABLE IF NOT EXISTS favorites (
-
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-    user_id INTEGER,
-
-    subject_id INTEGER,
-
-    date_ajout DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-    FOREIGN KEY(user_id)
-
-    REFERENCES users(id),
-
-    FOREIGN KEY(subject_id)
-
-    REFERENCES subjects(id)
+REFERENCES users(id)
 
 );
 
 
-----------------------------------------------------
--- TELECHARGEMENTS
-----------------------------------------------------
+-------------------------------------------------
+-- DOWNLOADS
+-------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS downloads (
+CREATE TABLE IF NOT EXISTS downloads(
 
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    user_id INTEGER,
+user_id INTEGER,
 
-    subject_id INTEGER,
+subject_id INTEGER,
 
-    date_download DATETIME DEFAULT CURRENT_TIMESTAMP,
+date_download DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY(user_id)
+FOREIGN KEY(user_id)
 
-    REFERENCES users(id),
+REFERENCES users(id),
 
-    FOREIGN KEY(subject_id)
+FOREIGN KEY(subject_id)
 
-    REFERENCES subjects(id)
-
-);
-
-
-----------------------------------------------------
--- COMMENTAIRES
-----------------------------------------------------
-
-CREATE TABLE IF NOT EXISTS comments (
-
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-    user_id INTEGER,
-
-    subject_id INTEGER,
-
-    contenu TEXT,
-
-    date_comment DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-    FOREIGN KEY(user_id)
-
-    REFERENCES users(id),
-
-    FOREIGN KEY(subject_id)
-
-    REFERENCES subjects(id)
+REFERENCES subjects(id)
 
 );
 
 
-----------------------------------------------------
--- DISCUSSIONS
-----------------------------------------------------
+-------------------------------------------------
+-- FAVORITES
+-------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS messages (
+CREATE TABLE IF NOT EXISTS favorites(
 
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    expediteur_id INTEGER,
+user_id INTEGER,
 
-    contenu TEXT,
+subject_id INTEGER,
 
-    date_message DATETIME DEFAULT CURRENT_TIMESTAMP,
+date_ajout DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY(expediteur_id)
+FOREIGN KEY(user_id)
 
-    REFERENCES users(id)
+REFERENCES users(id),
 
-);
+FOREIGN KEY(subject_id)
 
-
-----------------------------------------------------
--- AVIS PUBLICS
-----------------------------------------------------
-
-CREATE TABLE IF NOT EXISTS reviews (
-
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-    user_id INTEGER,
-
-    note INTEGER,
-
-    commentaire TEXT,
-
-    date_review DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-    FOREIGN KEY(user_id)
-
-    REFERENCES users(id)
+REFERENCES subjects(id)
 
 );
 
 
-----------------------------------------------------
--- ANNONCES
-----------------------------------------------------
+-------------------------------------------------
+-- COMMENTS
+-------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS announcements (
+CREATE TABLE IF NOT EXISTS comments(
 
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    titre TEXT,
+user_id INTEGER,
 
-    contenu TEXT,
+subject_id INTEGER,
 
-    auteur_id INTEGER,
+contenu TEXT,
 
-    date_creation DATETIME DEFAULT CURRENT_TIMESTAMP,
+date_comment DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY(auteur_id)
+FOREIGN KEY(user_id)
 
-    REFERENCES users(id)
+REFERENCES users(id),
+
+FOREIGN KEY(subject_id)
+
+REFERENCES subjects(id)
 
 );
 
 
-----------------------------------------------------
+-------------------------------------------------
+-- PRIVATE MESSAGES
+-------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS messages(
+
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+expediteur_id INTEGER,
+
+destinataire_id INTEGER,
+
+contenu TEXT,
+
+date_message DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+FOREIGN KEY(expediteur_id)
+
+REFERENCES users(id),
+
+FOREIGN KEY(destinataire_id)
+
+REFERENCES users(id)
+
+);
+
+
+-------------------------------------------------
+-- REVIEWS
+-------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS reviews(
+
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+user_id INTEGER,
+
+note INTEGER,
+
+commentaire TEXT,
+
+date_review DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+FOREIGN KEY(user_id)
+
+REFERENCES users(id)
+
+);
+
+
+-------------------------------------------------
+-- ANNOUNCEMENTS
+-------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS announcements(
+
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+titre TEXT,
+
+contenu TEXT,
+
+auteur_id INTEGER,
+
+date_creation DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+FOREIGN KEY(auteur_id)
+
+REFERENCES users(id)
+
+);
+
+
+-------------------------------------------------
 -- NOTIFICATIONS
-----------------------------------------------------
+-------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS notifications (
+CREATE TABLE IF NOT EXISTS notifications(
 
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    user_id INTEGER,
+user_id INTEGER,
 
-    message TEXT,
+message TEXT,
 
-    est_lu INTEGER DEFAULT 0,
+type_notification TEXT,
 
-    date_notification DATETIME DEFAULT CURRENT_TIMESTAMP,
+est_lu INTEGER DEFAULT 0,
 
-    FOREIGN KEY(user_id)
+date_notification DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    REFERENCES users(id)
+FOREIGN KEY(user_id)
 
-);
-
-
-----------------------------------------------------
--- PAIEMENTS
-----------------------------------------------------
-
-CREATE TABLE IF NOT EXISTS payments (
-
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-    user_id INTEGER,
-
-    subject_id INTEGER,
-
-    montant INTEGER DEFAULT 300,
-
-    mode_paiement TEXT DEFAULT 'presentiel',
-
-    statut TEXT DEFAULT 'en_attente'
-
-    CHECK(
-
-        statut IN (
-
-            'en_attente',
-
-            'valide',
-
-            'refuse'
-
-        )
-
-    ),
-
-    date_paiement DATETIME,
-
-    valide_par INTEGER,
-
-    FOREIGN KEY(user_id)
-
-    REFERENCES users(id),
-
-    FOREIGN KEY(subject_id)
-
-    REFERENCES subjects(id),
-
-    FOREIGN KEY(valide_par)
-
-    REFERENCES users(id)
+REFERENCES users(id)
 
 );
 
 
-----------------------------------------------------
--- SIGNALEMENTS
-----------------------------------------------------
+-------------------------------------------------
+-- PAYMENTS
+-------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS reports (
+CREATE TABLE IF NOT EXISTS payments(
 
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    user_id INTEGER,
+user_id INTEGER,
 
-    subject_id INTEGER,
+subject_id INTEGER,
 
-    motif TEXT,
+montant INTEGER DEFAULT 300,
 
-    date_report DATETIME DEFAULT CURRENT_TIMESTAMP,
+mode_paiement TEXT DEFAULT 'presentiel',
 
-    FOREIGN KEY(user_id)
+statut TEXT DEFAULT 'en_attente'
 
-    REFERENCES users(id),
+CHECK(
 
-    FOREIGN KEY(subject_id)
+statut IN(
 
-    REFERENCES subjects(id)
+'en_attente',
+'valide',
+'refuse'
+
+)
+
+),
+
+date_paiement DATETIME,
+
+valide_par INTEGER,
+
+FOREIGN KEY(user_id)
+
+REFERENCES users(id),
+
+FOREIGN KEY(subject_id)
+
+REFERENCES subjects(id),
+
+FOREIGN KEY(valide_par)
+
+REFERENCES users(id)
 
 );
 
 
-----------------------------------------------------
--- PARAMETRES
-----------------------------------------------------
+-------------------------------------------------
+-- REPORTS
+-------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS settings (
+CREATE TABLE IF NOT EXISTS reports(
 
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    cle TEXT UNIQUE,
+user_id INTEGER,
 
-    valeur TEXT
+subject_id INTEGER,
+
+motif TEXT,
+
+date_report DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+FOREIGN KEY(user_id)
+
+REFERENCES users(id),
+
+FOREIGN KEY(subject_id)
+
+REFERENCES subjects(id)
 
 );
 
 
-----------------------------------------------------
--- JOURNAL SYSTEME
-----------------------------------------------------
+-------------------------------------------------
+-- SETTINGS
+-------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS logs (
+CREATE TABLE IF NOT EXISTS settings(
 
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    utilisateur TEXT,
+setting_key TEXT UNIQUE,
 
-    action TEXT,
+setting_value TEXT
 
-    adresse_ip TEXT,
+);
 
-    resultat TEXT,
 
-    date_action DATETIME DEFAULT CURRENT_TIMESTAMP
+-------------------------------------------------
+-- LOGS
+-------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS logs(
+
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+user_id INTEGER,
+
+action TEXT,
+
+adresse_ip TEXT,
+
+resultat TEXT,
+
+date_action DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+FOREIGN KEY(user_id)
+
+REFERENCES users(id)
 
 );
